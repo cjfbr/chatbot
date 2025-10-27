@@ -5,17 +5,12 @@ import sys
 
 
 
-def load_spacy_model(model_name="en_core_web_sm"):
-    try:
-        return spacy.load(model_name)
-    except OSError:
-        subprocess.run([sys.executable, "-m", "spacy", "download", model_name], check=True)
-        return spacy.load(model_name)
+@st.cache_resource
+def get_nlp():
+    # como o wheel já foi instalado na build, só carregar
+    return spacy.load("en_core_web_sm")
 
-
-
-
-nlp = load_spacy_model()
+nlp = get_nlp()
 
 US_STATES = [
     "alabama", "alaska", "arizona", "arkansas", "california", "colorado", "connecticut", "delaware",
