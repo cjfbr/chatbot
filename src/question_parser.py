@@ -77,6 +77,8 @@ def parse_question(question: str):
 
     # --- Intent detection (priority-based logic) ---
 
+        # --- Detect intent (priority-based logic) ---
+
     # 1️⃣ Tipped (highest priority)
     if any(w in lemmas for w in INTENT_KEYWORDS["tipped"]):
         if any(w in lemmas for w in INTENT_KEYWORDS["max"]):
@@ -94,14 +96,14 @@ def parse_question(question: str):
     elif any(w in lemmas for w in INTENT_KEYWORDS["age"]):
         q_type = "age"
 
-    # 4️⃣ Historical
+    # 4️⃣ Historical (mention of year or history terms)
     elif any(w in lemmas for w in INTENT_KEYWORDS["history"]) or year:
         q_type = "history"
 
-    # 5️⃣ Max/min (non-tipped)
-    elif any(w in lemmas for w in INTENT_KEYWORDS["max"]):
+    # 5️⃣ Max/min (important: checked before 'current')
+    elif any(word in text for word in ["highest", "most", "greatest", "largest", "top", "max"]):
         q_type = "max"
-    elif any(w in lemmas for w in INTENT_KEYWORDS["min"]):
+    elif any(word in text for word in ["lowest", "least", "smallest", "bottom", "low", "min"]):
         q_type = "min"
 
     # 6️⃣ Current wage (fallback)
@@ -112,6 +114,7 @@ def parse_question(question: str):
 
     else:
         q_type = "unknown"
+
 
     # Confidence scoring
     confidence = intent_confidence(q_type, lemmas)
