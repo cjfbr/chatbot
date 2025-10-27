@@ -27,7 +27,7 @@ def generate_response(parsed, result):
     # --- Handle MAX wage queries ---
     if q_type == "max":
         wage = clean_value(result.get("basic_minimum_rate_text"))
-        return f"The state with the highest minimum wage is {result.get('state')} at ${wage}."
+        return f"The state with the highest minimum wage is {result.get('state')} at {wage}."
 
     # --- Handle MIN wage queries ---
     if q_type == "min":
