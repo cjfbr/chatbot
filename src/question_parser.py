@@ -34,28 +34,27 @@ INTENT_KEYWORDS = {
 
 
 def intent_confidence(q_type: str, lemmas: list[str]) -> float:
-    """
-    Compute how strongly the question matches the chosen intent,
-    with dynamic boosting for age-related contexts.
-    """
     keywords = INTENT_KEYWORDS.get(q_type, [])
     matches = sum(1 for w in lemmas if w in keywords)
     base_conf = matches / max(len(keywords), 1)
 
     # --- Dynamic confidence boosting rules ---
     if q_type == "age":
-        # If the question mentions both 'wage' and an age-related word, boost confidence
         if any(w in lemmas for w in ["wage", "minimum", "pay"]) and any(
             w in lemmas for w in ["child", "children", "kid", "kids", "minor", "teen", "teenager"]
         ):
-            base_conf += 0.3  # +30% confidence boost for clear "child wage" context
+            base_conf += 0.3
 
     elif q_type == "current":
-        # If the question mentions 'wage' but no state or age term, it's strongly current
         if "wage" in lemmas and not any(
             w in lemmas for w in ["child", "children", "kid", "minor", "teen"]
         ):
             base_conf += 0.2
+
+    elif q_type == "compare":
+        # Boost if multiple states are detected
+        if len([w for w in lemmas if w in [s.lower() for s in US_STATES]]) >= 2:
+            base_conf += 0.5  # big confidence boost for multi-state context
 
     return round(min(base_conf, 1.0), 2)
 
