@@ -93,11 +93,15 @@ if submitted:
         if parsed.get("confidence", 1) < 0.3:
             st.info("⚠️ I'm not very confident about your question intent. Try rephrasing it.")
 
+    conf = parsed.get("confidence", 0)
+    color = "green" if conf >= 0.7 else "orange" if conf >= 0.4 else "red"
+
     with st.expander("🔍 Debug info (Intent Detection)"):
-        st.markdown(f"**Intent Type:** `{query['type']}`")
-        if query["states"]:
-            st.markdown("**Detected States:** " + ", ".join(f"`{s}`" for s in query["states"]))
+        st.markdown(f"**Intent Type:** `{parsed['type']}`")
+        if parsed["states"]:
+            st.markdown("**Detected States:** " + ", ".join(f"`{s}`" for s in parsed["states"]))
         else:
             st.markdown("**Detected States:** _None_")
-        st.markdown(f"**Year:** `{query['year'] if query['year'] else 'None'}`")
-        st.markdown(f"**Confidence:** `{query['confidence']}`")
+        st.markdown(f"**Year:** `{parsed['year'] if parsed['year'] else 'None'}`")
+        st.markdown(f"**Confidence:** <span style='color:{color}; font-weight:bold;'>{conf}</span>", unsafe_allow_html=True)
+
