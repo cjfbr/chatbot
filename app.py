@@ -7,55 +7,88 @@ from src.query_engine import (
 )
 from src.response_generator import generate_response
 
+# --------------------------
+#  Page configuration
+# --------------------------
 st.set_page_config(page_title="US Minimum Wage Chatbot", layout="centered")
 
 st.title("💬 US Minimum Wage Chatbot")
-st.markdown("Ask about minimum wages, historical rates, tipped worker rates, or labor certificate rules for minors."
-            )
+st.markdown("""
+Ask about minimum wages, historical rates, tipped worker rates, or labor certificate rules for minors.
+Examples:
+- "Which state has the highest minimum wage?"
+- "Which state offers better pay, Colorado or Utah?"
+- "How has the wage changed in Washington over the years?"
+- "What do children need to work in Florida?"
+""")
 
-# Load data
-data = load_data()
+# --------------------------
+#  Load and cache data
+# --------------------------
+@st.cache_data
+def get_data():
+    return load_data()
 
-# User input
-user_input = st.text_input("Ask your question (e.g. 'Which state has the highest minimum wage?', 'Which state offers better pay, Colorado or Utah?','How has the wage changed in Washington over the years?','What do children need to work in Florida')")
+data = get_data()
 
-if st.button("Ask"):
+# --------------------------
+#  Input form (Enter or Button)
+# --------------------------
+with st.form(key="chat_form"):
+    user_input = st.text_input(
+        "Ask your question:",
+        placeholder="Type a question and press Enter or click 'Ask'"
+    )
+    submitted = st.form_submit_button("Ask")
+
+# --------------------------
+#  Main logic
+# --------------------------
+if submitted:
     if not user_input.strip():
         st.warning("Please type a question.")
     else:
-        # ✅ Parse question first
-        parsed = parse_question(user_input)
-        q_type = parsed["type"]
+        with st.spinner("🤔 Thinking..."):
+            parsed = parse_question(user_input)
+            q_type = parsed.get("type")
 
-        # Run the correct query based on detected type
-        if q_type == "max":
-            result = query_max(data)
-        elif q_type == "min":
-            result = query_min(data)
-        elif q_type == "max_tipped":
-            result = query_max_tipped(data)
-        elif q_type == "min_tipped":
-            result = query_min_tipped(data)
-        elif q_type == "compare":
-            result = query_compare(data, parsed["states"])
-        elif q_type == "current":
-            result = query_current(data, parsed["states"][0] if parsed["states"] else None)
-        elif q_type == "history":
-            result = query_history(data, parsed["states"][0] if parsed["states"] else None, parsed["year"])
-        elif q_type == "tipped":
-            result = query_tipped(data, parsed["states"][0] if parsed["states"] else None)
-        elif q_type == "age":
-            result = query_age(data, parsed["states"][0] if parsed["states"] else None)
-        else:
+            # Run appropriate query
             result = None
+            try:
+                if q_type == "max":
+                    result = query_max(data)
+                elif q_type == "min":
+                    result = query_min(data)
+                elif q_type == "max_tipped":
+                    result = query_max_tipped(data)
+                elif q_type == "min_tipped":
+                    result = query_min_tipped(data)
+                elif q_type == "compare":
+                    result = query_compare(data, parsed["states"])
+                elif q_type == "current":
+                    result = query_current(data, parsed["states"][0] if parsed["states"] else None)
+                elif q_type == "history":
+                    result = query_history(data, parsed["states"][0] if parsed["states"] else None, parsed["year"])
+                elif q_type == "tipped":
+                    result = query_tipped(data, parsed["states"][0] if parsed["states"] else None)
+                elif q_type == "age":
+                    result = query_age(data, parsed["states"][0] if parsed["states"] else None)
 
-        # ✅ Now use parsed in response generation
-        st.markdown("### 🤖 Answer:")
-        st.markdown(generate_response(parsed, result))
+            except Exception as e:
+                st.error(f"❌ Error while processing your question: {e}")
+                result = None
 
+        # --------------------------
+        #  Generate and display response
+        # --------------------------
+        if result is not None:
+            st.markdown("### 🤖 Answer:")
+            st.markdown(generate_response(parsed, result))
+        else:
+            st.warning("Sorry, I couldn't find an answer for that question.")
 
-# Show confidence if below threshold
-    if parsed["confidence"] < 0.3:
-        st.info("⚠️ I'm not very confident about your question intent. Try rephrasing it.")
-
-
+        # --------------------------
+        #  Confidence warning
+        # --------------------------
+        if parsed.get("confidence", 1) < 0.3:
+            st.info("⚠️ I'm not very confident about your question intent. Try rephrasing it.")
