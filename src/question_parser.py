@@ -52,11 +52,21 @@ def intent_confidence(q_type: str, lemmas: list[str]) -> float:
             base_conf += 0.2
 
     elif q_type == "compare":
-        # Boost if multiple states are detected
         if len([w for w in lemmas if w in [s.lower() for s in US_STATES]]) >= 2:
-            base_conf += 0.5  # big confidence boost for multi-state context
+            base_conf += 0.5
+
+    elif q_type in ["max", "min"]:
+        # Boost confidence when key comparative terms are present
+        if any(w in lemmas for w in ["high", "higher", "most", "largest", "top", "biggest"]):
+            base_conf += 0.5
+        if any(w in lemmas for w in ["low", "lower", "least", "smallest", "bottom"]):
+            base_conf += 0.5
+        # Also boost if the question includes 'state' and 'wage'
+        if any(w in lemmas for w in ["state"]) and any(w in lemmas for w in ["wage", "minimum", "pay"]):
+            base_conf += 0.3
 
     return round(min(base_conf, 1.0), 2)
+
 
 
 
