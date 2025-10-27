@@ -1,7 +1,22 @@
 import re
 import spacy
 
-nlp = spacy.load("en_core_web_sm")
+
+def load_spacy_model(model_name="en_core_web_sm"):
+    try:
+        # tenta carregar o modelo
+        nlp = spacy.load(model_name)
+        
+    except OSError:
+        
+        subprocess.check_call([sys.executable, "-m", "spacy", "download", model_name])
+        nlp = spacy.load(model_name)
+        
+    return nlp
+
+
+
+nlp = load_spacy_model()
 
 US_STATES = [
     "alabama", "alaska", "arizona", "arkansas", "california", "colorado", "connecticut", "delaware",
