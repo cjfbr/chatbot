@@ -7,15 +7,11 @@ import sys
 
 def load_spacy_model(model_name="en_core_web_sm"):
     try:
-        # tenta carregar o modelo
-        nlp = spacy.load(model_name)
-        
+        return spacy.load(model_name)
     except OSError:
-        
-        subprocess.check_call([sys.executable, "-m", "spacy", "download", model_name])
-        nlp = spacy.load(model_name)
-        
-    return nlp
+        subprocess.run([sys.executable, "-m", "spacy", "download", model_name], check=True)
+        return spacy.load(model_name)
+
 
 
 
