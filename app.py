@@ -19,7 +19,7 @@ Examples:
 - "Which state has the highest minimum wage?"
 - "Which state offers better pay, Colorado or Utah?"
 - "How has the wage changed in Washington over the years?"
-- "What do children need to work in Florida?"
+- "Do minors need a work certificate in Florida?"
 """)
 
 # --------------------------
@@ -92,3 +92,12 @@ if submitted:
         # --------------------------
         if parsed.get("confidence", 1) < 0.3:
             st.info("⚠️ I'm not very confident about your question intent. Try rephrasing it.")
+
+    with st.expander("🔍 Debug info (Intent Detection)"):
+        st.markdown(f"**Intent Type:** `{query['type']}`")
+        if query["states"]:
+            st.markdown("**Detected States:** " + ", ".join(f"`{s}`" for s in query["states"]))
+        else:
+            st.markdown("**Detected States:** _None_")
+        st.markdown(f"**Year:** `{query['year'] if query['year'] else 'None'}`")
+        st.markdown(f"**Confidence:** `{query['confidence']}`")

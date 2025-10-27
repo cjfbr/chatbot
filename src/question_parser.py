@@ -23,8 +23,8 @@ US_STATES = [
 ]
 
 INTENT_KEYWORDS = {
-    "tipped": ["tip", "tipped", "gratuity"],
-    "history": ["since", "year", "change", "history", "evolve"],
+    "tipped": ["tip", "tipped", "gratuity", "server", "waiter", "waitress", "bartender"],
+    "history": ["since", "year", "change", "history", "evolve","past", "historical"],
     "age": ["minor", "certificate", "age", "child", "children", "kid", "kids", "teen", "teenager", "youth"],   
     "current": ["wage", "minimum", "pay", "current"],
     "max": ["highest", "max", "biggest", "largest", "top"],
@@ -75,36 +75,36 @@ def parse_question(question: str):
         elif ent.label_ == "DATE" and re.match(r"^(19|20)\d{2}$", ent.text.strip()):
             year = int(ent.text.strip())
 
-    # --- Detect intent ---
- 
-    if "tipped" in lemmas and any(w in lemmas for w in INTENT_KEYWORDS["max"]):
-        q_type = "max_tipped"
-    elif "tipped" in lemmas and any(w in lemmas for w in INTENT_KEYWORDS["min"]):
-        q_type = "min_tipped"
+    # --- Intent detection (priority-based logic) ---
 
-    # ✅ Direct text fallback — catch "highest", "most", "greatest", "lowest", etc.
-    elif any(word in text for word in ["highest", "most", "greatest", "largest", "top", "high"]):
-        q_type = "max"
-    elif any(word in text for word in ["lowest", "least", "smallest", "bottom", "low"]):
-        q_type = "min"
+    # 1️⃣ Tipped (highest priority)
+    if any(w in lemmas for w in INTENT_KEYWORDS["tipped"]):
+        if any(w in lemmas for w in INTENT_KEYWORDS["max"]):
+            q_type = "max_tipped"
+        elif any(w in lemmas for w in INTENT_KEYWORDS["min"]):
+            q_type = "min_tipped"
+        else:
+            q_type = "tipped"
 
+    # 2️⃣ Comparison (multi-state or explicit compare)
     elif any(w in lemmas for w in INTENT_KEYWORDS["compare"]) or "vs" in text or "versus" in text or len(states) >= 2:
         q_type = "compare"
 
+    # 3️⃣ Age-based
     elif any(w in lemmas for w in INTENT_KEYWORDS["age"]):
-        # Priority rule: "wage" + "child/minor" → still age
-        if any(w in lemmas for w in ["wage", "minimum", "pay"]):
-            q_type = "age"
-        else:
-            q_type = "age"
+        q_type = "age"
 
-    elif any(w in lemmas for w in INTENT_KEYWORDS["tipped"]):
-        q_type = "tipped"
-
+    # 4️⃣ Historical
     elif any(w in lemmas for w in INTENT_KEYWORDS["history"]) or year:
         q_type = "history"
 
-    # “how much” or wage-related → current
+    # 5️⃣ Max/min (non-tipped)
+    elif any(w in lemmas for w in INTENT_KEYWORDS["max"]):
+        q_type = "max"
+    elif any(w in lemmas for w in INTENT_KEYWORDS["min"]):
+        q_type = "min"
+
+    # 6️⃣ Current wage (fallback)
     elif any(w in lemmas for w in INTENT_KEYWORDS["current"]) or (
         "how" in [t.text for t in doc if t.tag_ in ["WP", "WRB"]] and "much" in lemmas
     ):
@@ -113,12 +113,7 @@ def parse_question(question: str):
     else:
         q_type = "unknown"
 
-
-    # “how much” → current wage
-    wh_words = [token.text for token in doc if token.tag_ in ["WP", "WRB"]]
-    if "how" in wh_words and "much" in lemmas:
-        q_type = "current"
-
+    # Confidence scoring
     confidence = intent_confidence(q_type, lemmas)
 
     return {
@@ -127,6 +122,4 @@ def parse_question(question: str):
         "year": year,
         "confidence": confidence,
     }
-
-
 
