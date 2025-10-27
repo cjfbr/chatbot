@@ -10,13 +10,14 @@ from src.response_generator import generate_response
 st.set_page_config(page_title="US Minimum Wage Chatbot", layout="centered")
 
 st.title("💬 US Minimum Wage Chatbot")
-st.markdown("Ask about minimum wages, tipped worker rates, or labor certificate rules for minors.")
+st.markdown("Ask about minimum wages, historical rates, tipped worker rates, or labor certificate rules for minors."
+            )
 
 # Load data
 data = load_data()
 
 # User input
-user_input = st.text_input("Ask your question (e.g. 'Which state has the highest minimum wage?')")
+user_input = st.text_input("Ask your question (e.g. 'Which state has the highest minimum wage?', 'Which state offers better pay, Colorado or Utah?','How has the wage changed in Washington over the years?','What do children need to work in Florida')")
 
 if st.button("Ask"):
     if not user_input.strip():
