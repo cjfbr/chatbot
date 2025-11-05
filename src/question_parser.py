@@ -88,7 +88,7 @@ def parse_question(question: str):
 
         # --- Detect intent (priority-based logic) ---
 
-    # 1️⃣ Tipped (highest priority)
+    #  Tipped (highest priority)
     if any(w in lemmas for w in INTENT_KEYWORDS["tipped"]):
         if any(w in lemmas for w in INTENT_KEYWORDS["max"]):
             q_type = "max_tipped"
@@ -97,25 +97,25 @@ def parse_question(question: str):
         else:
             q_type = "tipped"
 
-    # 2️⃣ Comparison (multi-state or explicit compare)
+    #  Comparison (multi-state or explicit compare)
     elif any(w in lemmas for w in INTENT_KEYWORDS["compare"]) or "vs" in text or "versus" in text or len(states) >= 2:
         q_type = "compare"
 
-    # 3️⃣ Age-based
+    #  Age-based
     elif any(w in lemmas for w in INTENT_KEYWORDS["age"]):
         q_type = "age"
 
-    # 4️⃣ Historical (mention of year or history terms)
+    #  Historical (mention of year or history terms)
     elif any(w in lemmas for w in INTENT_KEYWORDS["history"]) or year:
         q_type = "history"
 
-    # 5️⃣ Max/min (important: checked before 'current')
+    #  Max/min (important: checked before 'current')
     elif any(word in text for word in ["highest", "most", "greatest", "largest", "top", "max"]):
         q_type = "max"
     elif any(word in text for word in ["lowest", "least", "smallest", "bottom", "low", "min"]):
         q_type = "min"
 
-    # 6️⃣ Current wage (fallback)
+    #  Current wage (fallback)
     elif any(w in lemmas for w in INTENT_KEYWORDS["current"]) or (
         "how" in [t.text for t in doc if t.tag_ in ["WP", "WRB"]] and "much" in lemmas
     ):
