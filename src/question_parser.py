@@ -26,7 +26,7 @@ INTENT_KEYWORDS = {
     "tipped": ["tip", "tipped", "gratuity", "server", "waiter", "waitress", "bartender"],
     "history": ["since", "year", "change", "history", "evolve","past", "historical"],
     "age": ["minor", "certificate", "age", "child", "children", "kid", "kids", "teen", "teenager", "youth"],   
-    "current": ["wage", "minimum", "pay", "current"],
+    "current": ["wage", "minimum", "pay", "current","salary"],
     "max": ["highest", "max", "biggest", "largest", "top"],
     "min": ["lowest", "min", "smallest", "least", "bottom"],
     "compare": ["compare", "vs", "versus"],
